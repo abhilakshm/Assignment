@@ -2,35 +2,35 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Sample data representing posts
-let posts = [
-{ id: 1, userId: 1, content: 'Hello, world!' },
-{ id: 2, userId: 2, content: 'Another post.' },
-  // ... Add more posts here
+// Sample data representing users and their followers
+let users = [
+{ id: 1, username: 'user1', followers: [] },
+{ id: 2, username: 'user2', followers: [] },
+  // ... Add more users here
 ];
-
-let postIdCounter = 3; // To generate unique post IDs
 
 // Middleware
 app.use(express.json());
 
-// Create a new post
-app.post('/post', (req, res) => {
-const { userId, content } = req.body;
+// Follow a user
+app.post('/follow/:userId', (req, res) => {
+const { userId } = req.params;
+const { followerId } = req.body;
 
-if (!userId || !content) {
-    return res.status(400).json({ message: 'User ID and content are required' });
+const userToFollow = users.find(user => user.id === parseInt(userId));
+const follower = users.find(user => user.id === parseInt(followerId));
+
+if (!userToFollow || !follower) {
+    return res.status(404).json({ message: 'User(s) not found' });
 }
 
-const newPost = {
-    id: postIdCounter++,
-    userId,
-    content
-};
+if (userToFollow.followers.includes(follower.id)) {
+    return res.status(400).json({ message: 'You are already following this user' });
+}
 
-posts.push(newPost);
+userToFollow.followers.push(follower.id);
 
-res.status(201).json(newPost);
+res.status(200).json({ message: `${follower.username} is now following ${userToFollow.username}` });
 });
 
 // Start the server
